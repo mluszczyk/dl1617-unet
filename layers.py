@@ -120,3 +120,25 @@ class AssertShape:
         shape = signal.get_shape()
         assert tuple(shape.as_list()[1:]) == self.shape
         return signal
+
+
+class Link:
+    def __init__(self, var):
+        self.var = var
+
+    def contribute(self, signal, idx, trainable, save_variable):
+        self.var.signal = signal
+        return signal
+
+
+class Concat:
+    def __init__(self, var):
+        self.var = var
+
+    def contribute(self, signal, idx, trainable, save_variable):
+        return signal + self.var.signal
+
+
+class SkipVar:
+    def __init__(self):
+        self.signal = None

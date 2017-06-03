@@ -1,6 +1,7 @@
 import tensorflow as tf
 
-from layers import Reshape, Conv, BatchNormalization, Relu, MaxPool, FullyConnected, AssertShape, ConvUp
+from layers import Reshape, Conv, BatchNormalization, Relu, MaxPool, FullyConnected, AssertShape, ConvUp, SkipVar, Link, \
+    Concat
 
 
 def create_model(x, y_target):
@@ -12,6 +13,11 @@ def create_model(x, y_target):
 
 
 def inner_model(x):
+    var512 = SkipVar()
+    var256 = SkipVar()
+    var128 = SkipVar()
+    var64 = SkipVar()
+
     layers_list = [
         AssertShape((512, 512, 3)),
         Conv(4),
@@ -21,6 +27,7 @@ def inner_model(x):
         AssertShape((512, 512, 4)),
         Conv(4),
         Relu(),
+        Link(var512),
         BatchNormalization(),
         MaxPool(),
 
@@ -28,18 +35,21 @@ def inner_model(x):
         BatchNormalization(),
         Conv(4),
         Relu(),
+        Link(var256),
         MaxPool(),
 
         AssertShape((128, 128, 4)),
         BatchNormalization(),
         Conv(4),
         Relu(),
+        Link(var128),
         MaxPool(),
 
         AssertShape((64, 64, 4)),
         BatchNormalization(),
         Conv(4),
         Relu(),
+        Link(var64),
         MaxPool(),
 
         AssertShape((32, 32, 4)),
@@ -51,6 +61,7 @@ def inner_model(x):
         Relu(),
 
         # AssertShape((64, 64, 4)),
+        Concat(var64),
         BatchNormalization(),
         Conv(4),
         Relu(),
@@ -59,6 +70,7 @@ def inner_model(x):
         Relu(),
 
         # AssertShape((128, 128, 4)),
+        Concat(var128),
         BatchNormalization(),
         Conv(4),
         Relu(),
@@ -67,6 +79,7 @@ def inner_model(x):
         Relu(),
 
         # AssertShape((256, 256, 4)),
+        Concat(var256),
         BatchNormalization(),
         Conv(4),
         Relu(),
@@ -75,6 +88,7 @@ def inner_model(x):
         Relu(),
 
         # AssertShape((512, 512, 4)),
+        Concat(var512),
         BatchNormalization(),
         Conv(4),
         Relu(),
