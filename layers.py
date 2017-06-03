@@ -44,6 +44,28 @@ class Conv:
         return conv2d(signal, W_conv1) + b_conv1
 
 
+class ConvUp:
+    def __init__(self, output_channels: int):
+        self.output_channels = output_channels
+
+    def contribute(self, signal, idx, trainable, save_variable):
+        output_shape = (tf.shape(signal)[0], tf.shape(signal)[1] * 2, tf.shape(signal)[2] * 2, self.output_channels)
+
+        def conv2d(x, W):
+            return tf.nn.conv2d_transpose(x, W, output_shape=output_shape, padding='SAME', strides=[1, 2, 2, 1])
+
+        assert len(signal.get_shape()) == 4
+        input_channels = int(signal.get_shape()[3])
+
+        with tf.variable_scope('conv_' + str(idx + 1)):
+            W_conv1 = weight_variable([5, 5, input_channels, self.output_channels], trainable=trainable)
+            save_variable(W_conv1)
+            b_conv1 = bias_variable([self.output_channels], trainable=trainable)
+            save_variable(b_conv1)
+
+        return conv2d(signal, W_conv1) + b_conv1
+
+
 class MaxPool:
     def contribute(self, signal, idx, trainable, save_variable):
         def max_pool_2x2(x):

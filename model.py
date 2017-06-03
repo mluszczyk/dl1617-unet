@@ -1,6 +1,6 @@
 import tensorflow as tf
 
-from layers import Reshape, Conv, BatchNormalization, Relu, MaxPool, FullyConnected, AssertShape
+from layers import Reshape, Conv, BatchNormalization, Relu, MaxPool, FullyConnected, AssertShape, ConvUp
 
 
 def create_model(x, y_target):
@@ -17,12 +17,18 @@ def inner_model(x):
         Conv(4),
         AssertShape((650, 650, 4)),
         Relu(),
+        MaxPool(),
+
+        AssertShape((325, 325, 4)),
         BatchNormalization(),
         Conv(4),
         Relu(),
         BatchNormalization(),
         Conv(4),
         Relu(),
+
+        ConvUp(4),
+        AssertShape((650, 650, 4)),
         BatchNormalization(),
         AssertShape((650, 650, 4)),
         Conv(3),

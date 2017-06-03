@@ -29,7 +29,7 @@ class MnistTrainer:
 
         self.create_model()
 
-        saver = Saver(var_list=self.var_list)
+        saver = Saver()
 
         with tf.Session() as self.sess:
             tf.global_variables_initializer().run()  # initialize variables
@@ -48,7 +48,7 @@ class MnistTrainer:
             def transform(X):
                 return X.astype(numpy.float32) / 255.
 
-            data_source = DataSource(train_num=10000, test_num=1000, batch_size=10, cache=ImageCache(), transformer=transform)
+            data_source = DataSource(train_num=10000, test_num=1000, batch_size=2, cache=ImageCache(), transformer=transform)
             data_source.load()
 
             def test():
