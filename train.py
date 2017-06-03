@@ -8,8 +8,8 @@ import tensorflow as tf
 from sklearn.model_selection import train_test_split
 from sklearn.utils import shuffle
 from tensorflow.python.training.saver import Saver
+from datasource import DataSource, ImageCache
 
-import data
 from model import create_model, CHECKPOINT_FILE_NAME
 
 
@@ -43,31 +43,28 @@ class MnistTrainer:
                 print("Training a new model")
 
             print("Load data")
-            X, y = data.load_data(1000)
-            X = X.astype(numpy.float32) / 256.
-            y = y.astype(numpy.float32) / 256.
-            X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=10)
 
-
-            batches_n = 50
-            mb_size = 10
-            report_n = 1
+            report_n = 10
             epoch_n = 10
 
-
-
             losses = []
+
+            def transform(X):
+                return X.astype(numpy.float32) / 255.
+
+            data_source = DataSource(train_num=1000, test_num=10, batch_size=10, cache=ImageCache(), transformer=transform)
+            data_source.load()
+
             try:
                 print("Start training")
 
                 for epoch_idx in range(epoch_n):
                     print("Shuffle")
-                    X_train, y_train = shuffle(X_train, y_train)
+                    data_source.shuffle_train()
 
                     print("New epoch")
 
-                    for batch_idx in range(batches_n):
-                        batch_X, batch_y = X_train[mb_size * batch_idx:mb_size * (batch_idx + 1)], y_train[mb_size * batch_idx:mb_size * (batch_idx + 1)]
+                    for batch_idx, (batch_X, batch_y) in enumerate(data_source.iter_train_batches()):
 
                         vloss = self.train_on_batch(batch_X, batch_y)
 
@@ -78,6 +75,7 @@ class MnistTrainer:
                                 epoch_idx=epoch_idx,
                                 batch_idx=batch_idx, mean_loss=np.mean(losses[-200:], axis=0))
                             )
+                            X_test, y_test = data_source.get_test()
                             print('Test results', self.sess.run([self.loss, self.accuracy],
                                                                 feed_dict={self.x: X_test,
                                                                            self.y_target: y_test}))
@@ -90,6 +88,7 @@ class MnistTrainer:
                 pass
  
             # Test trained model
+            X_test, y_test = data_source.get_test()
             print('Test results', self.sess.run([self.loss, self.accuracy], feed_dict={self.x: X_test,
                                                 self.y_target: y_test}))
 
