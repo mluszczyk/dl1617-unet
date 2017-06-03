@@ -10,7 +10,7 @@ import io
 
 
 def load_image(byte_data):
-    img = Image.open(io.BytesIO(byte_data))
+    img = Image.open(io.BytesIO(byte_data)).resize((512, 512))
     array = numpy.asarray(img)
     return array
 

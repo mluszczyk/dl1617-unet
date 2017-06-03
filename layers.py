@@ -118,5 +118,5 @@ class AssertShape:
 
     def contribute(self, signal, idx, trainable, save_variable):
         shape = signal.get_shape()
-        assert(shape[1:], self.shape)
+        assert tuple(shape.as_list()[1:]) == self.shape
         return signal

@@ -13,26 +13,76 @@ def create_model(x, y_target):
 
 def inner_model(x):
     layers_list = [
-        AssertShape((650, 650, 3)),
+        AssertShape((512, 512, 3)),
         Conv(4),
-        AssertShape((650, 650, 4)),
+        AssertShape((512, 512, 4)),
+        Relu(),
+
+        AssertShape((512, 512, 4)),
+        Conv(4),
+        Relu(),
+        BatchNormalization(),
+        MaxPool(),
+
+        AssertShape((256, 256, 4)),
+        BatchNormalization(),
+        Conv(4),
         Relu(),
         MaxPool(),
 
-        AssertShape((325, 325, 4)),
+        AssertShape((128, 128, 4)),
         BatchNormalization(),
         Conv(4),
         Relu(),
+        MaxPool(),
+
+        AssertShape((64, 64, 4)),
+        BatchNormalization(),
+        Conv(4),
+        Relu(),
+        MaxPool(),
+
+        AssertShape((32, 32, 4)),
+        BatchNormalization(),
+        Conv(4),
+        Relu(),
+        BatchNormalization(),
+        ConvUp(4),
+        Relu(),
+
+        # AssertShape((64, 64, 4)),
+        BatchNormalization(),
+        Conv(4),
+        Relu(),
+        BatchNormalization(),
+        ConvUp(4),
+        Relu(),
+
+        # AssertShape((128, 128, 4)),
+        BatchNormalization(),
+        Conv(4),
+        Relu(),
+        BatchNormalization(),
+        ConvUp(4),
+        Relu(),
+
+        # AssertShape((256, 256, 4)),
+        BatchNormalization(),
+        Conv(4),
+        Relu(),
+        BatchNormalization(),
+        ConvUp(4),
+        Relu(),
+
+        # AssertShape((512, 512, 4)),
         BatchNormalization(),
         Conv(4),
         Relu(),
 
-        ConvUp(4),
-        AssertShape((650, 650, 4)),
+        # AssertShape((512, 512, 4)),
         BatchNormalization(),
-        AssertShape((650, 650, 4)),
         Conv(3),
-        AssertShape((650, 650, 3)),
+        # AssertShape((512, 512, 3)),
     ]
     variable_saver = VariableSaver()
     signal = x
