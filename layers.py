@@ -1,7 +1,7 @@
 import tensorflow as tf
 
 
-def weight_variable(shape, *, trainable, stddev=0.1):
+def weight_variable(shape, *, trainable, stddev=0.1, mean=0.0):
     initializer = tf.truncated_normal(shape, stddev=stddev)
     return tf.Variable(initializer, name='weight', trainable=trainable)
 
@@ -57,7 +57,7 @@ class BatchNormalization:
         input_shape = signal.get_shape()
 
         with tf.variable_scope('batch_norm_' + str(idx + 1)):
-            gamma = weight_variable([int(input_shape[-1])], trainable=trainable)
+            gamma = weight_variable([int(input_shape[-1])], trainable=trainable, mean=1.0)
             save_variable(gamma)
             beta = bias_variable([int(input_shape[-1])], trainable=trainable)
             save_variable(beta)
@@ -87,4 +87,14 @@ class FullyConnected:
             save_variable(b_fc)
 
         signal = tf.matmul(signal, W_fc) + b_fc
+        return signal
+
+
+class AssertShape:
+    def __init__(self, shape):
+        self.shape = shape
+
+    def contribute(self, signal, idx, trainable, save_variable):
+        shape = signal.get_shape()
+        assert(shape[1:], self.shape)
         return signal
