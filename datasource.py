@@ -38,6 +38,34 @@ class ImageCache:
         return self.data[path]
 
 
+class Subset:
+    def __init__(self, names, cache, batch_size, transformer):
+        self.names = names
+        self.cache = cache
+        self.batch_size = batch_size
+        self._transformer = transformer
+
+    def _get_batch(self, name_list: [str]):
+        X = load_image_list("data/images", name_list, lambda x, y: self.cache.get(self._join(x, y)))
+        y = load_image_list("data/heatmaps", name_list, lambda x, y: self.cache.get(self._join(x, y)))
+        return self._transformer(X), self._transformer(y)
+
+    def _get_batch_by_num(self, num):
+        return self._get_batch(self.names[num * self.batch_size:(num + 1) * self.batch_size])
+
+    def shuffle(self):
+        random.shuffle(self.names)
+
+    def batch_num(self) -> int:
+        return int(math.ceil(len(self.names) / self.batch_size))
+
+    def iter_batches(self):
+        return (self._get_batch_by_num(num) for num in range(self.batch_num()))
+
+    def _join(self, dir, name):
+        return os.path.join(dir, name)
+
+
 class DataSource:
     def __init__(self, train_num=None, *, test_num, batch_size, cache, transformer):
         self.train_num = train_num
@@ -57,26 +85,6 @@ class DataSource:
         if self.train_num is not None:
             name_list = name_list[:self.train_num + self.test_num]
         self.cache.load([self._join(d, n) for (d, n) in product(["data/images", "data/heatmaps"], name_list)])
-        self._train_names, self._test_names = train_test_split(name_list, test_size=self.test_num)
-
-    def _get_batch(self, name_list):
-        X = load_image_list("data/images", name_list, lambda x, y: self.cache.get(self._join(x, y)))
-        y = load_image_list("data/heatmaps", name_list, lambda x, y: self.cache.get(self._join(x, y)))
-        return self._transformer(X), self._transformer(y)
-
-    def get_test(self):
-        return self._get_batch(self._test_names)
-
-    def get_train(self, num):
-        names = self._train_names[num * self.batch_size:(num + 1) * self.batch_size]
-        assert names
-        return self._get_batch(names)
-
-    def shuffle_train(self):
-        random.shuffle(self._train_names)
-
-    def train_batch_num(self) -> int:
-        return int(math.ceil(self.train_num / self.batch_size))
-
-    def iter_train_batches(self):
-        return (self.get_train(num) for num in range(self.train_batch_num()))
+        train_names, test_names = train_test_split(name_list, test_size=self.test_num)
+        self.train = Subset(train_names, cache=self.cache, batch_size=self.batch_size, transformer=self._transformer)
+        self.test = Subset(test_names, cache=self.cache, batch_size=self.batch_size, transformer=self._transformer)

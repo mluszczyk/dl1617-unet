@@ -1,12 +1,10 @@
 """Train the model on MNIST dataset."""
 
 import os
+import statistics
 
 import numpy
-import numpy as np
 import tensorflow as tf
-from sklearn.model_selection import train_test_split
-from sklearn.utils import shuffle
 from tensorflow.python.training.saver import Saver
 from datasource import DataSource, ImageCache
 
@@ -44,54 +42,50 @@ class MnistTrainer:
 
             print("Load data")
 
-            report_n = 10
+            report_n = 100
             epoch_n = 10
-
-            losses = []
 
             def transform(X):
                 return X.astype(numpy.float32) / 255.
 
-            data_source = DataSource(train_num=1000, test_num=10, batch_size=10, cache=ImageCache(), transformer=transform)
+            data_source = DataSource(train_num=10000, test_num=1000, batch_size=10, cache=ImageCache(), transformer=transform)
             data_source.load()
+
+            def test():
+                test_losses = []
+                for X_test, y_test in data_source.test.iter_batches():
+                    loss = self.sess.run(self.loss, feed_dict={self.x: X_test,
+                                                          self.y_target: y_test})
+                    test_losses.append(loss)
+                print("Test results", numpy.mean(test_losses))
 
             try:
                 print("Start training")
 
                 for epoch_idx in range(epoch_n):
                     print("Shuffle")
-                    data_source.shuffle_train()
+                    data_source.train.shuffle()
 
-                    print("New epoch")
+                    print("Epoch {}/{}".format(epoch_idx, epoch_n))
 
-                    for batch_idx, (batch_X, batch_y) in enumerate(data_source.iter_train_batches()):
+                    for batch_idx, (batch_X, batch_y) in enumerate(data_source.train.iter_batches()):
 
                         vloss = self.train_on_batch(batch_X, batch_y)
 
-                        losses.append(vloss)
-
                         if batch_idx % report_n == 0:
-                            print('Batch {epoch_idx},{batch_idx}: mean_loss {mean_loss}'.format(
+                            print('Batch {epoch_idx},{batch_idx}: loss {loss}'.format(
                                 epoch_idx=epoch_idx,
-                                batch_idx=batch_idx, mean_loss=np.mean(losses[-200:], axis=0))
+                                batch_idx=batch_idx, loss=vloss)
                             )
-                            X_test, y_test = data_source.get_test()
-                            print('Test results', self.sess.run([self.loss, self.accuracy],
-                                                                feed_dict={self.x: X_test,
-                                                                           self.y_target: y_test}))
+                            test()
 
                             saver.save(self.sess, CHECKPOINT_FILE_NAME)
-                    print("End of epoch")
- 
+
             except KeyboardInterrupt:
                 print('Stopping training!')
                 pass
- 
-            # Test trained model
-            X_test, y_test = data_source.get_test()
-            print('Test results', self.sess.run([self.loss, self.accuracy], feed_dict={self.x: X_test,
-                                                self.y_target: y_test}))
 
+            test()
 
 if __name__ == '__main__':
     trainer = MnistTrainer()
