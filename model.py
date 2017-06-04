@@ -17,6 +17,8 @@ def inner_model(x):
     var256 = SkipVar()
     var128 = SkipVar()
     var64 = SkipVar()
+    var32 = SkipVar()
+    var16 = SkipVar()
 
     layers_list = [
         AssertShape((512, 512, 3)),
@@ -56,12 +58,47 @@ def inner_model(x):
         BatchNormalization(),
         Conv(8),
         Relu(),
+        Link(var32),
+        MaxPool(),
+
+        AssertShape((16, 16, 8)),
+        BatchNormalization(),
+        Conv(8),
+        Relu(),
+        Link(var16),
+        MaxPool(),
+
+        AssertShape((8, 8, 8)),
+        BatchNormalization(),
+        Conv(8),
+        Relu(),
         BatchNormalization(),
         ConvUp(8),
         Relu(),
 
-        # AssertShape((64, 64, 16)),
+        # AssertShape((16, 16, 8)),
+        Concat(var16),
+        AssertShape((16, 16, 16)),
+        BatchNormalization(),
+        Conv(8),
+        Relu(),
+        BatchNormalization(),
+        ConvUp(8),
+        Relu(),
+
+        # AssertShape((32, 32, 8)),
+        Concat(var32),
+        AssertShape((32, 32, 16)),
+        BatchNormalization(),
+        Conv(8),
+        Relu(),
+        BatchNormalization(),
+        ConvUp(8),
+        Relu(),
+
+        # AssertShape((64, 64, 8)),
         Concat(var64),
+        AssertShape((64, 64, 16)),
         BatchNormalization(),
         Conv(8),
         Relu(),
@@ -69,10 +106,12 @@ def inner_model(x):
         ConvUp(8),
         Relu(),
 
-        # AssertShape((128, 128, 16)),
+        # AssertShape((128, 128, 8)),
         Concat(var128),
+        AssertShape((128, 128, 16)),
         BatchNormalization(),
         Conv(8),
+        AssertShape((128, 128, 8)),
         Relu(),
         BatchNormalization(),
         ConvUp(8),
@@ -80,20 +119,24 @@ def inner_model(x):
 
         # AssertShape((256, 256, 8)),
         Concat(var256),
+        AssertShape((256, 256, 16)),
         BatchNormalization(),
         Conv(8),
+        AssertShape((256, 256, 8)),
         Relu(),
         BatchNormalization(),
         ConvUp(8),
         Relu(),
 
-        # AssertShape((512, 512, 4)),
+        # AssertShape((512, 512, 8)),
         Concat(var512),
+        AssertShape((512, 512, 16)),
         BatchNormalization(),
         Conv(8),
+        AssertShape((512, 512, 8)),
         Relu(),
 
-        # AssertShape((512, 512, 4)),
+        # AssertShape((512, 512, 8)),
         BatchNormalization(),
         Conv(3),
         # AssertShape((512, 512, 3)),

@@ -136,7 +136,7 @@ class Concat:
         self.var = var
 
     def contribute(self, signal, idx, trainable, save_variable):
-        return signal + self.var.signal
+        return tf.concat([signal, self.var.signal], 3)
 
 
 class SkipVar:
