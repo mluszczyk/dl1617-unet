@@ -10,11 +10,28 @@ def loss_func(signal, y_target):
 
 def create_model(x, y_target):
     model = InnerModel()
-    var_list = model.register_variables(x)
-    signal = model.apply(x)
+    signal = tf.image.resize_images(x, [512, 512])
+    var_list = model.register_variables(signal)
+    signal = model.apply(signal)
+    signal = tf.image.resize_images(signal, [650, 650])
     loss = loss_func(signal, y_target)
     train_step = tf.train.AdamOptimizer(1e-4).minimize(loss)
     return var_list, loss, train_step, signal
+
+
+def create_test_model():
+    x = tf.placeholder(tf.float32, [None, 650, 650, 3], name='x')
+    y_target = tf.placeholder(tf.float32, [None, 650, 650, 3], name='y')
+    model = InnerModel()
+    signal = tf.image.resize_images(x, [512, 512])
+    model.register_variables(signal)
+    y_pred_trans = model.apply(tf.transpose(signal, [0, 2, 1, 3]))
+    y_pred_aug = tf.transpose(y_pred_trans, [0, 2, 1, 3])
+    y_pred_orig = model.apply(signal)
+    y_pred = tf.reduce_mean([y_pred_aug, y_pred_orig], axis=[0])
+    y_pred = tf.image.resize_images(y_pred, [650, 650])
+
+    return x, y_pred, y_target
 
 
 class InnerModel():

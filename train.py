@@ -19,8 +19,8 @@ class MnistTrainer:
         return results[1:]
 
     def create_model(self):
-        self.x = tf.placeholder(tf.float32, [None, 512, 512, 3], name='x')
-        self.y_target = tf.placeholder(tf.float32, [None, 512, 512, 3], name='y')
+        self.x = tf.placeholder(tf.float32, [None, 650, 650, 3], name='x')
+        self.y_target = tf.placeholder(tf.float32, [None, 650, 650, 3], name='y')
 
         self.var_list, self.loss, self.train_step, y_prob = create_model(self.x, self.y_target)
 
