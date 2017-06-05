@@ -7,7 +7,7 @@ import datetime
 import numpy
 import tensorflow as tf
 from tensorflow.python.training.saver import Saver
-from datasource import DataSource, ImageCache, TransposeAugment
+from datasource import DataSource, ImageCache, TransposeAugment, NoCache
 
 from model import create_model, CHECKPOINT_FILE_NAME
 
@@ -45,14 +45,15 @@ class MnistTrainer:
 
             log("Load data")
 
-            report_n = 100
+            report_n = 1000
             epoch_n = 10
 
             def transform(X):
                 return X.astype(numpy.float32) / 255.
 
             data_source = DataSource(
-                train_num=10593 - 1024, test_num=1024, batch_size=10, cache=ImageCache(), transformer=transform,
+                "data-bmp",
+                train_num=10593 - 1024, test_num=1024, batch_size=10, cache=NoCache(), transformer=transform,
                 augment=TransposeAugment())
             data_source.load()
 

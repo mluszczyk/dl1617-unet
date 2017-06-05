@@ -1,7 +1,7 @@
-REMOTE=gpu0.qed.ai
+REMOTE="$1"
 REMOTE_DIR=dl1617-unet
 VENV=dl1617-mnist-venv
-EXECUTABLE="$1"
+EXECUTABLE="$2"
 
 rsync -axv *.py $REMOTE:$REMOTE_DIR/
 
