@@ -2,7 +2,7 @@ import tensorflow as tf
 
 
 def weight_variable(shape, *, trainable, stddev=0.1, mean=0.0):
-    initializer = tf.truncated_normal(shape, stddev=stddev)
+    initializer = tf.truncated_normal(shape, stddev=stddev, mean=mean)
     return tf.Variable(initializer, name='weight', trainable=trainable)
 
 
@@ -25,8 +25,9 @@ class Reshape:
 
 
 class Conv:
-    def __init__(self, output_channels: int):
+    def __init__(self, output_channels: int, filter_size: int=3):
         self.output_channels = output_channels
+        self._filter_size = filter_size
 
     def contribute(self, signal, idx, trainable, save_variable):
         def conv2d(x, W):
@@ -36,7 +37,9 @@ class Conv:
         input_channels = int(signal.get_shape()[3])
 
         with tf.variable_scope('conv_' + str(idx + 1)):
-            W_conv1 = weight_variable([5, 5, input_channels, self.output_channels], trainable=trainable)
+            W_conv1 = weight_variable(
+                [self._filter_size, self._filter_size, input_channels, self.output_channels],
+                trainable=trainable)
             save_variable(W_conv1)
             b_conv1 = bias_variable([self.output_channels], trainable=trainable)
             save_variable(b_conv1)

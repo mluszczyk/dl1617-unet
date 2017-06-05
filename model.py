@@ -137,8 +137,7 @@ def inner_model(x):
         Relu(),
 
         # AssertShape((512, 512, 8)),
-        BatchNormalization(),
-        Conv(3),
+        Conv(3, filter_size=1),
         # AssertShape((512, 512, 3)),
     ]
     variable_saver = VariableSaver()

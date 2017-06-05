@@ -45,7 +45,8 @@ class MnistTrainer:
 
             log("Load data")
 
-            report_n = 1000
+            report_n = 100
+            test_n = 1000
             epoch_n = 10
 
             def transform(X):
@@ -83,8 +84,9 @@ class MnistTrainer:
                                 epoch_idx=epoch_idx,
                                 batch_idx=batch_idx, loss=vloss)
                             )
-                            test()
 
+                        if (batch_idx + 1) % test_n == 0:
+                            test()
                             saver.save(self.sess, CHECKPOINT_FILE_NAME)
 
             except KeyboardInterrupt:
