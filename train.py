@@ -3,6 +3,7 @@
 import os
 import statistics
 
+import datetime
 import numpy
 import tensorflow as tf
 from tensorflow.python.training.saver import Saver
@@ -26,6 +27,8 @@ class MnistTrainer:
         print('list of variables', list(map(lambda x: x.name, tf.global_variables())))
 
     def train(self):
+        def log(*messages):
+            print(datetime.datetime.now().time(), *messages)
 
         self.create_model()
 
@@ -35,12 +38,12 @@ class MnistTrainer:
             tf.global_variables_initializer().run()  # initialize variables
 
             if os.path.exists(CHECKPOINT_FILE_NAME + ".meta"):
-                print("Restoring existing weights")
+                log("Restoring existing weights")
                 saver.restore(self.sess, CHECKPOINT_FILE_NAME)
             else:
-                print("Training a new model")
+                log("Training a new model")
 
-            print("Load data")
+            log("Load data")
 
             report_n = 100
             epoch_n = 10
@@ -59,23 +62,23 @@ class MnistTrainer:
                     loss = self.sess.run(self.loss, feed_dict={self.x: X_test,
                                                           self.y_target: y_test})
                     test_losses.append(loss)
-                print("Test results", numpy.mean(test_losses))
+                log("Test results", numpy.mean(test_losses))
 
             try:
-                print("Start training")
+                log("Start training")
 
                 for epoch_idx in range(epoch_n):
-                    print("Shuffle")
+                    log("Shuffle")
                     data_source.train.shuffle()
 
-                    print("Epoch {}/{}".format(epoch_idx, epoch_n))
+                    log("Epoch {}/{}".format(epoch_idx, epoch_n))
 
                     for batch_idx, (batch_X, batch_y) in enumerate(data_source.train.iter_batches()):
 
                         vloss = self.train_on_batch(batch_X, batch_y)
 
-                        if batch_idx % report_n == 0:
-                            print('Batch {epoch_idx},{batch_idx}: loss {loss}'.format(
+                        if (batch_idx + 1) % report_n == 0:
+                            log('Batch {epoch_idx},{batch_idx}: loss {loss}'.format(
                                 epoch_idx=epoch_idx,
                                 batch_idx=batch_idx, loss=vloss)
                             )
@@ -84,7 +87,7 @@ class MnistTrainer:
                             saver.save(self.sess, CHECKPOINT_FILE_NAME)
 
             except KeyboardInterrupt:
-                print('Stopping training!')
+                log('Stopping training!')
                 pass
 
             test()
