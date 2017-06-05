@@ -12,7 +12,7 @@ from datasource import DataSource, ImageCache, TransposeAugment, NoCache
 from model import create_model, CHECKPOINT_FILE_NAME
 
 
-class MnistTrainer:
+class Trainer:
     def train_on_batch(self, sess, batch_xs, batch_ys):
         results = sess.run([self.train_step, self.loss],
                            feed_dict={self.x: batch_xs, self.y_target: batch_ys})
@@ -75,14 +75,16 @@ class MnistTrainer:
 
                     log("Epoch {}/{}".format(epoch_idx, epoch_n))
 
+                    losses = []
                     for batch_idx, (batch_X, batch_y) in enumerate(data_source.train.iter_batches()):
 
-                        vloss = self.train_on_batch(sess, batch_X, batch_y)
+                        vloss = self.train_on_batch(sess, batch_X, batch_y)[0]
+                        losses.append(vloss)
 
                         if (batch_idx + 1) % report_n == 0:
                             log('Batch {epoch_idx},{batch_idx}: loss {loss}'.format(
                                 epoch_idx=epoch_idx,
-                                batch_idx=batch_idx, loss=vloss)
+                                batch_idx=batch_idx, loss=numpy.mean(losses[-report_n:]))
                             )
 
                         if (batch_idx + 1) % test_n == 0:
@@ -96,7 +98,7 @@ class MnistTrainer:
             test()
 
 if __name__ == '__main__':
-    trainer = MnistTrainer()
+    trainer = Trainer()
     trainer.train()
 
 
