@@ -13,16 +13,16 @@ from model import create_model, CHECKPOINT_FILE_NAME
 
 
 class MnistTrainer:
-    def train_on_batch(self, batch_xs, batch_ys):
-        results = self.sess.run([self.train_step, self.loss, self.accuracy],
-                                feed_dict={self.x: batch_xs, self.y_target: batch_ys})
+    def train_on_batch(self, sess, batch_xs, batch_ys):
+        results = sess.run([self.train_step, self.loss],
+                           feed_dict={self.x: batch_xs, self.y_target: batch_ys})
         return results[1:]
 
     def create_model(self):
         self.x = tf.placeholder(tf.float32, [None, 512, 512, 3], name='x')
         self.y_target = tf.placeholder(tf.float32, [None, 512, 512, 3], name='y')
 
-        self.var_list, self.loss, self.accuracy, self.train_step, y_prob = create_model(self.x, self.y_target)
+        self.var_list, self.loss, self.train_step, y_prob = create_model(self.x, self.y_target)
 
         print('list of variables', list(map(lambda x: x.name, tf.global_variables())))
 
@@ -34,12 +34,12 @@ class MnistTrainer:
 
         saver = Saver()
 
-        with tf.Session() as self.sess:
+        with tf.Session() as sess:
             tf.global_variables_initializer().run()  # initialize variables
 
             if os.path.exists(CHECKPOINT_FILE_NAME + ".meta"):
                 log("Restoring existing weights")
-                saver.restore(self.sess, CHECKPOINT_FILE_NAME)
+                saver.restore(sess, CHECKPOINT_FILE_NAME)
             else:
                 log("Training a new model")
 
@@ -61,7 +61,7 @@ class MnistTrainer:
             def test(func=self.loss):
                 test_losses = []
                 for X_test, y_test in data_source.test.iter_batches():
-                    loss = self.sess.run(func, feed_dict={self.x: X_test,
+                    loss = sess.run(func, feed_dict={self.x: X_test,
                                                           self.y_target: y_test})
                     test_losses.append(loss)
                 log("Test results", numpy.mean(test_losses))
@@ -77,7 +77,7 @@ class MnistTrainer:
 
                     for batch_idx, (batch_X, batch_y) in enumerate(data_source.train.iter_batches()):
 
-                        vloss = self.train_on_batch(batch_X, batch_y)
+                        vloss = self.train_on_batch(sess, batch_X, batch_y)
 
                         if (batch_idx + 1) % report_n == 0:
                             log('Batch {epoch_idx},{batch_idx}: loss {loss}'.format(
@@ -87,7 +87,7 @@ class MnistTrainer:
 
                         if (batch_idx + 1) % test_n == 0:
                             test()
-                            saver.save(self.sess, CHECKPOINT_FILE_NAME)
+                            saver.save(sess, CHECKPOINT_FILE_NAME)
 
             except KeyboardInterrupt:
                 log('Stopping training!')

@@ -8,31 +8,33 @@ import tensorflow as tf
 from tensorflow.python.training.saver import Saver
 from datasource import DataSource, ImageCache, TransposeAugment, NoCache
 
-from model import create_model, CHECKPOINT_FILE_NAME
+from model import CHECKPOINT_FILE_NAME, InnerModel, loss_func
 
 
 class Tester:
-    def create_model(self):
-        self.x = tf.placeholder(tf.float32, [None, 512, 512, 3], name='x')
-        self.y_target = tf.placeholder(tf.float32, [None, 512, 512, 3], name='y')
-
-        self.var_list, self.loss, self.accuracy, self.train_step, y_prob = create_model(self.x, self.y_target)
-
-        print('list of variables', list(map(lambda x: x.name, tf.global_variables())))
-
     def test(self):
         def log(*messages):
             print(datetime.datetime.now().time(), *messages)
 
-        self.create_model()
+        x = tf.placeholder(tf.float32, [None, 512, 512, 3], name='x')
+        y_target = tf.placeholder(tf.float32, [None, 512, 512, 3], name='y')
+
+        model = InnerModel()
+        model.register_variables(x)
+
+        y_pred_trans = model.apply(tf.transpose(x, [0, 2, 1, 3]))
+        y_pred_aug = tf.transpose(y_pred_trans, [0, 2, 1, 3])
+        y_pred_orig = model.apply(x)
+
+        y_pred = tf.reduce_mean([y_pred_aug, y_pred_orig], axis=[0])
 
         saver = Saver()
 
-        with tf.Session() as self.sess:
+        with tf.Session() as sess:
             tf.global_variables_initializer().run()  # initialize variables
 
             log("Restoring existing weights")
-            saver.restore(self.sess, CHECKPOINT_FILE_NAME)
+            saver.restore(sess, CHECKPOINT_FILE_NAME)
 
             log("Load data")
 
@@ -45,15 +47,19 @@ class Tester:
                 augment=TransposeAugment())
             data_source.load()
 
-            def test(func=self.loss):
+            def test(func):
                 test_losses = []
                 for X_test, y_test in data_source.test.iter_batches():
-                    loss = self.sess.run(func, feed_dict={self.x: X_test,
-                                                          self.y_target: y_test})
+                    loss = sess.run(func, feed_dict={x: X_test,
+                                                     y_target: y_test})
                     test_losses.append(loss)
                 log("Test results", numpy.mean(test_losses))
 
-            test()
+            def test_augment():
+                loss = loss_func(y_pred, y_target)
+                return test(loss)
+
+            test_augment()
 
 if __name__ == '__main__':
     trainer = Tester()
