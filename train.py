@@ -54,7 +54,7 @@ class Trainer:
 
             data_source = DataSource(
                 "data",
-                train_num=10593 - 1024, test_num=1024, batch_size=10, cache=ImageCache(), transformer=transform,
+                train_num=10593 - 1024, test_num=1024, batch_size=4, cache=ImageCache(), transformer=transform,
                 augment=TransposeAugment())
             data_source.load()
 
