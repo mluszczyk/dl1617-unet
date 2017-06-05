@@ -53,8 +53,8 @@ class MnistTrainer:
                 return X.astype(numpy.float32) / 255.
 
             data_source = DataSource(
-                "data-bmp",
-                train_num=10593 - 1024, test_num=1024, batch_size=10, cache=NoCache(), transformer=transform,
+                "data",
+                train_num=10593 - 1024, test_num=1024, batch_size=10, cache=ImageCache(), transformer=transform,
                 augment=TransposeAugment())
             data_source.load()
 

@@ -102,7 +102,10 @@ class DataSource:
         name_list = get_image_list(self._path)
         if self.train_num is not None:
             name_list = name_list[:self.train_num + self.test_num]
-        self.cache.load([self._join(d, n) for (d, n) in product(["data-bmp/images", "data-bmp/heatmaps"], name_list)])
+        self.cache.load([self._join(d, n)
+                         for (d, n) in product([os.path.join(self._path, "images"),
+                                                os.path.join(self._path, "heatmaps")],
+                                               name_list)])
         train_names, test_names = train_test_split(name_list, test_size=self.test_num)
         self.train = Subset(self._path, train_names, cache=self.cache,
                             batch_size=self.batch_size, transformer=self._transformer,

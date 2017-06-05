@@ -136,9 +136,9 @@ def inner_model(x):
         AssertShape((512, 512, 8)),
         Relu(),
 
-        # AssertShape((512, 512, 8)),
+        AssertShape((512, 512, 8)),
         Conv(3, filter_size=1),
-        # AssertShape((512, 512, 3)),
+        AssertShape((512, 512, 3)),
     ]
     variable_saver = VariableSaver()
     signal = x
