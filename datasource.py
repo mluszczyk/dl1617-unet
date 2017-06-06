@@ -131,3 +131,22 @@ class TransposeAugment:
 
     def transform(self, image, mode):
         return image.transpose(mode)
+
+
+def load_single_image(name):
+    with open(name, 'br') as f:
+        image = load_image(f.read(), NoAugment(), None)
+    image = image / 255
+    image = image.reshape((1, 650, 650, 3))
+    return image
+
+
+def save_image(data, name):
+    data *= 255
+    data = numpy.maximum(0, data)
+    data = numpy.minimum(255, data)
+    data = numpy.round(data).astype(numpy.uint8)
+    data = data.reshape((650, 650, 3))
+
+    img = Image.fromarray(data)
+    img.save(name)

@@ -34,6 +34,16 @@ def create_test_model():
     return x, y_pred, y_target
 
 
+def query_model():
+    x = tf.placeholder(tf.float32, [None, 650, 650, 3], name='x')
+    model = InnerModel()
+    signal = tf.image.resize_images(x, [512, 512])
+    model.register_variables(signal)
+    signal = model.apply(signal)
+    signal = tf.image.resize_images(signal, [650, 650])
+    return x, signal
+
+
 class InnerModel():
     def __init__(self):
         var512 = SkipVar()
