@@ -69,6 +69,10 @@ class Subset:
     def _get_batch_by_num(self, num):
         return self._get_batch(self.items[num * self.batch_size:(num + 1) * self.batch_size])
 
+    def _get_batch_by_num_with_names(self, num):
+        sublist = self.items[num * self.batch_size:(num + 1) * self.batch_size]
+        return self._get_batch(sublist), sublist
+
     def shuffle(self):
         random.shuffle(self.items)
 
@@ -77,6 +81,9 @@ class Subset:
 
     def iter_batches(self):
         return (self._get_batch_by_num(num) for num in range(self.batch_num()))
+
+    def iter_batches_with_names(self):
+        return (self._get_batch_by_num_with_names(num) for num in range(self.batch_num()))
 
     def _join(self, dir, name):
         return os.path.join(dir, name)
@@ -150,3 +157,8 @@ def save_image(data, name):
 
     img = Image.fromarray(data)
     img.save(name)
+
+
+def save_images(data, dir, names):
+    for image, name in zip(data, names):
+        save_image(image, os.path.join(dir, name))
