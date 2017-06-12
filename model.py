@@ -39,7 +39,12 @@ def query_model():
     model = InnerModel()
     signal = tf.image.resize_images(x, [512, 512])
     model.register_variables(signal)
-    signal = model.apply(signal)
+
+    y_pred_trans = model.apply(tf.transpose(signal, [0, 2, 1, 3]))
+    y_pred_aug = tf.transpose(y_pred_trans, [0, 2, 1, 3])
+    y_pred_orig = model.apply(signal)
+    signal = tf.reduce_mean([y_pred_aug, y_pred_orig], axis=[0])
+
     signal = tf.image.resize_images(signal, [650, 650])
     return x, signal
 
